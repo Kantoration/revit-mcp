@@ -1,0 +1,12 @@
+langchain
+langchain-core
+langchain-groq
+langchain-community
+langchain-huggingface
+python-dotenv
+requests
+sentence-transformers
+numpy
+torch
+transformers
+Pillow 

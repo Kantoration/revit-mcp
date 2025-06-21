@@ -1,0 +1,86 @@
+[
+  {
+    "method_name": "create_window_on_wall",
+    "description": "Creates a window on a selected wall at a specified position",
+    "keywords": [
+      "window",
+      "wall",
+      "create",
+      "opening",
+      "insert"
+    ],
+    "parameters": [
+      "wall_position",
+      "window_type",
+      "height"
+    ],
+    "csharp_code": "public void CreateWindowOnWall(string wallPosition, string windowType, double height) { /* implementation */ }"
+  },
+  {
+    "method_name": "create_door_on_wall",
+    "description": "Creates a door on a selected wall with specified parameters",
+    "keywords": [
+      "door",
+      "wall",
+      "create",
+      "opening",
+      "insert"
+    ],
+    "parameters": [
+      "wall_position",
+      "door_type",
+      "height"
+    ],
+    "csharp_code": "public void CreateDoorOnWall(string wallPosition, string doorType, double height) { /* implementation */ }"
+  },
+  {
+    "method_name": "get_element_information",
+    "description": "Retrieves detailed information about selected elements",
+    "keywords": [
+      "get",
+      "information",
+      "selected",
+      "element",
+      "properties"
+    ],
+    "parameters": [
+      "element_ids"
+    ],
+    "csharp_code": "public Dictionary<string, object> GetElementInformation(List<ElementId> elementIds) { /* implementation */ }"
+  },
+  {
+    "method_name": "create_floor_at_level",
+    "description": "Creates a floor at a specified level with given boundaries",
+    "keywords": [
+      "floor",
+      "level",
+      "create",
+      "boundary",
+      "geometry"
+    ],
+    "parameters": [
+      "level_name",
+      "boundary_curves",
+      "floor_type"
+    ],
+    "csharp_code": "public void CreateFloorAtLevel(string levelName, CurveArray boundaryCurves, FloorType floorType) { /* implementation */ }"
+  },
+  {
+    "method_name": "create_wall_between_points",
+    "description": "Creates a wall between two specified points",
+    "keywords": [
+      "wall",
+      "create",
+      "points",
+      "line",
+      "geometry"
+    ],
+    "parameters": [
+      "start_point",
+      "end_point",
+      "wall_type",
+      "level"
+    ],
+    "csharp_code": "public void CreateWallBetweenPoints(XYZ startPoint, XYZ endPoint, WallType wallType, Level level) { /* implementation */ }"
+  }
+]
