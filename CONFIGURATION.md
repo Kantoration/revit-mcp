@@ -38,6 +38,9 @@ VISUAL_CONTEXT_ENABLED=true # true, false
 
 # CLIP similarity threshold (0.0 to 1.0, higher = more strict matching)
 CLIP_SIMILARITY_THRESHOLD=0.3  # 0.3, 0.5, 0.7, etc.
+
+# CLIP device choice (auto, cpu, gpu, cuda)
+CLIP_DEVICE_CHOICE=auto     # auto, cpu, gpu, cuda
 ```
 
 ## Configuration Options
@@ -64,6 +67,12 @@ CLIP_SIMILARITY_THRESHOLD=0.3  # 0.3, 0.5, 0.7, etc.
 - **0.5**: Medium threshold - requires stronger visual-text alignment
 - **0.7**: High threshold - requires very strong visual-text alignment
 
+### CLIP_DEVICE_CHOICE
+- **auto** (default): Automatically choose the best available device
+- **cpu**: Force CPU usage (slower but works everywhere)
+- **gpu** or **cuda**: Force GPU usage (faster if available)
+- **gpu** and **cuda** are equivalent - both use CUDA if available
+
 ## Example Configurations
 
 ### Demo Mode (Default)
@@ -73,15 +82,27 @@ ASYNC_EXECUTION=false
 FALLBACK_MODE=auto
 VISUAL_CONTEXT_ENABLED=true
 CLIP_SIMILARITY_THRESHOLD=0.3
+CLIP_DEVICE_CHOICE=auto
 ```
 
-### Production Mode
+### Production Mode with GPU
 ```bash
 MCP_ENABLED=true
 ASYNC_EXECUTION=true
 FALLBACK_MODE=auto
 VISUAL_CONTEXT_ENABLED=true
 CLIP_SIMILARITY_THRESHOLD=0.5
+CLIP_DEVICE_CHOICE=gpu
+```
+
+### Production Mode with CPU
+```bash
+MCP_ENABLED=true
+ASYNC_EXECUTION=true
+FALLBACK_MODE=auto
+VISUAL_CONTEXT_ENABLED=true
+CLIP_SIMILARITY_THRESHOLD=0.5
+CLIP_DEVICE_CHOICE=cpu
 ```
 
 ### Debug Mode
@@ -92,6 +113,7 @@ FALLBACK_MODE=manual
 SAVE_FAILED_RESPONSES=true
 VISUAL_CONTEXT_ENABLED=true
 CLIP_SIMILARITY_THRESHOLD=0.3
+CLIP_DEVICE_CHOICE=cpu
 ```
 
 ### Text-Only Mode
@@ -100,4 +122,40 @@ MCP_ENABLED=false
 ASYNC_EXECUTION=false
 FALLBACK_MODE=auto
 VISUAL_CONTEXT_ENABLED=false
-``` 
+```
+
+### Performance-Optimized Mode
+```bash
+MCP_ENABLED=true
+ASYNC_EXECUTION=true
+FALLBACK_MODE=auto
+VISUAL_CONTEXT_ENABLED=true
+CLIP_SIMILARITY_THRESHOLD=0.7
+CLIP_DEVICE_CHOICE=gpu
+```
+
+## Device Selection Logic
+
+The `CLIP_DEVICE_CHOICE` setting follows this logic:
+
+1. **auto**: 
+   - Uses GPU if CUDA is available
+   - Falls back to CPU if no GPU available
+   - Best for most users
+
+2. **cpu**: 
+   - Always uses CPU
+   - Slower but guaranteed to work
+   - Good for servers without GPU
+
+3. **gpu** or **cuda**: 
+   - Uses GPU if CUDA is available
+   - Falls back to CPU with warning if no GPU
+   - Best performance when GPU is available
+
+## Performance Considerations
+
+- **GPU (CUDA)**: 5-10x faster than CPU for visual analysis
+- **CPU**: Slower but works on any system
+- **Memory**: CLIP model requires ~1GB RAM
+- **First run**: Model download may take a few minutes 

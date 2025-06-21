@@ -1,269 +1,218 @@
-# Visual Context Analysis with CLIP
+# Visual Context Analysis
 
 ## Overview
 
-The Revit AI Assistant now includes **CLIP-based visual context analysis** that significantly enhances the AI's understanding by combining visual and textual information. This feature allows users to provide images alongside their instructions, enabling the AI to make more informed decisions about Revit operations.
+The Visual Context Analysis feature uses OpenAI's CLIP (Contrastive Language-Image Pre-training) model to enhance the AI's understanding of Revit instructions by analyzing images provided by users. This allows the AI to generate more accurate and contextually relevant Revit code.
 
-## 🎯 Key Benefits
+## Features
 
-### **Enhanced Understanding**
-- **Visual-text alignment**: CLIP analyzes how well the image matches the instruction
-- **Context-aware planning**: AI considers visual elements when generating code
-- **Reduced ambiguity**: Visual context helps clarify user intent
+- **Image-Text Similarity**: Analyzes how well an image matches a text instruction
+- **Visual Context Integration**: Enhances AI planning with visual information
+- **Flexible Device Support**: Choose between CPU and GPU processing
+- **Configurable Thresholds**: Adjust similarity requirements
+- **Graceful Fallbacks**: Works even when CLIP is not available
 
-### **Improved Accuracy**
-- **Better method selection**: Visual context helps choose the right existing methods
-- **More precise parameters**: Image analysis can suggest specific dimensions or types
-- **Reduced errors**: Visual verification reduces misinterpretation of instructions
-
-### **Flexible Integration**
-- **Optional feature**: Can be enabled/disabled via configuration
-- **Graceful fallback**: Works seamlessly even without images
-- **Multiple image support**: Can analyze multiple images for comprehensive context
-
-## 🔧 How It Works
-
-### 1. **Image Analysis Pipeline**
-```
-User Input → CLIP Model → Similarity Score → Context Generation → Enhanced Prompt
-```
-
-### 2. **CLIP Processing**
-- **Image encoding**: Converts image to high-dimensional vector
-- **Text encoding**: Converts instruction to matching vector space
-- **Similarity calculation**: Computes cosine similarity between vectors
-- **Context generation**: Creates descriptive context based on similarity
-
-### 3. **Integration with LangChain**
-- **Enhanced prompts**: Visual context is added to the AI prompt
-- **Guided planning**: AI receives specific guidelines based on similarity scores
-- **Method selection**: Visual context influences existing method reuse decisions
-
-## 📊 Similarity Score Interpretation
-
-| Score Range | Meaning | Planning Strategy |
-|-------------|---------|-------------------|
-| **0.7 - 1.0** | Strong match | Use visual context confidently |
-| **0.5 - 0.7** | Moderate match | Consider visual elements |
-| **0.3 - 0.5** | Weak match | Use as hints, verify assumptions |
-| **0.0 - 0.3** | Poor match | Rely primarily on text |
-
-## 🚀 Usage Examples
-
-### Basic Usage
-```python
-from visual_context import analyze_visual_context
-
-# Analyze image with instruction
-context, score = analyze_visual_context("wall_image.jpg", "create a window on the selected wall")
-print(f"Context: {context}")
-print(f"Similarity: {score:.3f}")
-```
-
-### Integration with Main Application
-```python
-from main import run_with_image
-
-# Run with image and instruction
-await run_with_image("create a door on the wall", "door_location.jpg")
-```
-
-### Multiple Image Analysis
-```python
-from visual_context import VisualContextAnalyzer
-
-analyzer = VisualContextAnalyzer()
-images = ["view1.jpg", "view2.jpg", "detail.jpg"]
-result = analyzer.analyze_multiple_images(images, "create a window on the selected wall")
-```
-
-## ⚙️ Configuration
+## Configuration
 
 ### Environment Variables
+
+Add these to your `.env` file:
+
 ```bash
 # Enable/disable visual context analysis
 VISUAL_CONTEXT_ENABLED=true
 
-# CLIP similarity threshold
+# CLIP similarity threshold (0.0 to 1.0)
+CLIP_SIMILARITY_THRESHOLD=0.3
+
+# CLIP device choice (auto, cpu, gpu, cuda)
+CLIP_DEVICE_CHOICE=auto
+```
+
+### Device Configuration Options
+
+| Option | Description | Use Case |
+|--------|-------------|----------|
+| `auto` | Automatically choose best available device | Best for most users |
+| `cpu` | Force CPU usage | Servers without GPU, guaranteed compatibility |
+| `gpu` | Force GPU usage (if available) | Maximum performance when GPU available |
+| `cuda` | Force CUDA usage (if available) | Same as `gpu` |
+
+### Similarity Thresholds
+
+| Threshold | Description | Behavior |
+|-----------|-------------|----------|
+| 0.3 (default) | Low threshold | Accepts most relevant images |
+| 0.5 | Medium threshold | Requires stronger visual-text alignment |
+| 0.7 | High threshold | Requires very strong visual-text alignment |
+
+## Installation
+
+### Basic Installation (CPU only)
+```bash
+pip install torch transformers Pillow
+```
+
+### GPU Installation (for CUDA acceleration)
+```bash
+# Install PyTorch with CUDA support
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+# Install other dependencies
+pip install transformers Pillow
+```
+
+### Verify Installation
+```bash
+python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}')"
+```
+
+## Usage
+
+### Basic Usage
+
+```python
+from visual_context import analyze_visual_context
+
+# Analyze an image with an instruction
+context, similarity = analyze_visual_context(
+    image_path="wall_image.jpg",
+    user_instruction="create a window on the selected wall"
+)
+
+print(f"Similarity: {similarity:.3f}")
+print(f"Context: {context}")
+```
+
+### Advanced Usage with Device Choice
+
+```python
+from visual_context import VisualContextAnalyzer
+
+# Create analyzer with specific device
+analyzer = VisualContextAnalyzer(device_choice="gpu")
+
+# Get device information
+device_info = analyzer.get_device_info()
+print(f"Using device: {device_info['actual_device']}")
+
+# Analyze image
+context, similarity = analyzer.analyze_visual_context(
+    image_path="wall_image.jpg",
+    user_instruction="create a window on the selected wall"
+)
+```
+
+### Integration with Main Application
+
+The visual context analysis is automatically integrated into the main Revit AI Assistant. When you provide an image along with your instruction, the system will:
+
+1. Analyze the image-text similarity
+2. Generate visual context description
+3. Provide visual suggestions
+4. Enhance the AI planning process
+
+## Performance Considerations
+
+### GPU vs CPU Performance
+
+- **GPU (CUDA)**: 5-10x faster than CPU for visual analysis
+- **CPU**: Slower but works on any system
+- **Memory**: CLIP model requires ~1GB RAM
+- **First run**: Model download may take a few minutes
+
+### Device Selection Logic
+
+1. **auto**: Uses GPU if CUDA is available, falls back to CPU
+2. **cpu**: Always uses CPU (slower but guaranteed to work)
+3. **gpu/cuda**: Uses GPU if available, falls back to CPU with warning
+
+## Example Configurations
+
+### Development Mode (CPU)
+```bash
+VISUAL_CONTEXT_ENABLED=true
+CLIP_DEVICE_CHOICE=cpu
 CLIP_SIMILARITY_THRESHOLD=0.3
 ```
 
-### Configuration Options
+### Production Mode (GPU)
+```bash
+VISUAL_CONTEXT_ENABLED=true
+CLIP_DEVICE_CHOICE=gpu
+CLIP_SIMILARITY_THRESHOLD=0.5
+```
 
-#### VISUAL_CONTEXT_ENABLED
-- **true** (default): Enables CLIP-based visual analysis
-- **false**: Disables visual context (text-only mode)
+### High Precision Mode
+```bash
+VISUAL_CONTEXT_ENABLED=true
+CLIP_DEVICE_CHOICE=auto
+CLIP_SIMILARITY_THRESHOLD=0.7
+```
 
-#### CLIP_SIMILARITY_THRESHOLD
-- **0.3** (default): Minimum similarity for relevance
-- **0.5**: Medium threshold - stronger alignment required
-- **0.7**: High threshold - very strong alignment required
+### Disabled Mode
+```bash
+VISUAL_CONTEXT_ENABLED=false
+```
 
-## 📋 Supported Image Formats
+## Testing
 
-- **JPEG** (.jpg, .jpeg)
-- **PNG** (.png)
-- **BMP** (.bmp)
-- **TIFF** (.tiff)
-- **WebP** (.webp)
+Run the device configuration test:
 
-## 🔍 Visual Context Types
+```bash
+python test_clip_devices.py
+```
 
-### **Wall Operations**
-- Wall type identification
-- Height and thickness estimation
-- Material properties
-- Opening locations
+This will test all device configurations and show detailed information about your setup.
 
-### **Opening Operations**
-- Window/door sizing
-- Positioning relative to wall
-- Type and style identification
-- Frame details
+## Troubleshooting
 
-### **Floor Operations**
-- Floor type identification
-- Boundary geometry
-- Level information
-- Material properties
+### Common Issues
 
-### **Element Information**
-- Element type identification
-- Property extraction
-- Geometry analysis
-- Selection guidance
+1. **CLIP not available**: Install dependencies with `pip install torch transformers Pillow`
+2. **CUDA not available**: Install PyTorch with CUDA support or use CPU mode
+3. **Out of memory**: Use CPU mode or reduce batch size
+4. **Slow performance**: Use GPU mode if available
 
-## 🛠️ Technical Implementation
+### Error Messages
 
-### **CLIP Model**
-- **Model**: `openai/clip-vit-base-patch32`
-- **Device**: Automatic CUDA/CPU detection
-- **Memory**: ~150MB model size
-- **Speed**: ~100ms per image (GPU), ~500ms (CPU)
+- `CLIP dependencies not available`: Install required packages
+- `GPU requested but CUDA not available`: Use CPU mode or install CUDA
+- `Visual analysis failed`: Check image path and format
 
-### **Embedding Process**
+## API Reference
+
+### VisualContextAnalyzer
+
 ```python
-# Image preprocessing
-image = Image.open(image_path).convert("RGB")
-inputs = processor(text=[instruction], images=image, return_tensors="pt")
-
-# Model inference
-outputs = model(**inputs)
-image_embeds = outputs.image_embeds
-text_embeds = outputs.text_embeds
-
-# Similarity calculation
-similarity = torch.cosine_similarity(image_embeds, text_embeds)[0].item()
+class VisualContextAnalyzer:
+    def __init__(self, model_name="openai/clip-vit-base-patch32", device_choice="auto")
+    
+    def analyze_visual_context(self, image_path: str, user_instruction: str) -> Tuple[str, float]
+    def get_device_info(self) -> Dict[str, Any]
+    def get_visual_suggestions(self, image_path: str, instruction: str) -> list
 ```
 
-### **Context Generation**
+### Convenience Functions
+
 ```python
-def generate_context(similarity, instruction):
-    if similarity > 0.7:
-        return f"The image strongly matches '{instruction}'. Proceed with confidence."
-    elif similarity > 0.5:
-        return f"The image moderately matches '{instruction}'. Consider visual elements."
-    # ... more conditions
+def analyze_visual_context(image_path: str, user_instruction: str, device_choice: str = "auto") -> Tuple[str, float]
+def get_global_analyzer(device_choice: str = "auto") -> VisualContextAnalyzer
+def reset_global_analyzer(device_choice: str = "auto") -> VisualContextAnalyzer
 ```
 
-## 📈 Performance Considerations
+## Best Practices
 
-### **Memory Usage**
-- **Model loading**: ~150MB RAM
-- **Per-image processing**: ~50MB temporary memory
-- **Batch processing**: Scales linearly with image count
+1. **Use appropriate device**: GPU for performance, CPU for compatibility
+2. **Set reasonable thresholds**: 0.3 for development, 0.5-0.7 for production
+3. **Provide relevant images**: Images should match the instruction context
+4. **Monitor performance**: Use device info to verify configuration
+5. **Handle fallbacks**: Always check if CLIP is available before using
 
-### **Processing Speed**
-- **GPU acceleration**: 10-50x faster than CPU
-- **Batch processing**: Efficient for multiple images
-- **Caching**: Global analyzer instance for reuse
+## Future Enhancements
 
-### **Accuracy Trade-offs**
-- **Higher thresholds**: More precise but fewer matches
-- **Lower thresholds**: More matches but potential false positives
-- **Model size**: Larger models = better accuracy but slower inference
-
-## 🧪 Testing and Validation
-
-### **Test Script**
-```bash
-# Run visual context tests
-python test_visual_context.py
-```
-
-### **Test Coverage**
-- Basic functionality testing
-- Multiple image analysis
-- Integration with main application
-- Error handling and fallbacks
-- Performance benchmarking
-
-### **Validation Examples**
-| Instruction | Image Content | Expected Score | Expected Context |
-|-------------|---------------|----------------|------------------|
-| "create window" | Wall with window opening | 0.7-0.9 | Strong match, proceed confidently |
-| "create door" | Wall with door frame | 0.6-0.8 | Moderate match, consider visual elements |
-| "create floor" | Building foundation | 0.4-0.6 | Weak match, use as hints |
-| "get element info" | Various Revit elements | 0.3-0.5 | Some relevance, verify assumptions |
-
-## 🔮 Future Enhancements
-
-### **Planned Features**
-- **Object detection**: Identify specific Revit elements in images
-- **Measurement extraction**: Estimate dimensions from images
-- **Style recognition**: Identify architectural styles and preferences
-- **Multi-modal prompts**: Combine image and text in prompts
-
-### **Advanced Capabilities**
-- **Video analysis**: Process video clips for dynamic context
-- **3D understanding**: Analyze 3D renders and models
-- **Real-time analysis**: Live camera feed integration
-- **Custom training**: Fine-tune CLIP for Revit-specific tasks
-
-## 🐛 Troubleshooting
-
-### **Common Issues**
-
-#### CLIP Model Not Loading
-```bash
-# Install dependencies
-pip install transformers torch Pillow
-
-# Check CUDA availability
-python -c "import torch; print(torch.cuda.is_available())"
-```
-
-#### Low Similarity Scores
-- **Check image quality**: Ensure clear, relevant images
-- **Adjust threshold**: Lower CLIP_SIMILARITY_THRESHOLD
-- **Verify instruction**: Ensure clear, specific instructions
-
-#### Memory Issues
-- **Use CPU**: Set device to CPU if GPU memory is limited
-- **Reduce batch size**: Process fewer images simultaneously
-- **Clear cache**: Restart application to free memory
-
-### **Debug Mode**
-```bash
-# Enable debug logging
-export LOG_LEVEL=DEBUG
-python main.py
-```
-
-## 📚 Additional Resources
-
-### **CLIP Documentation**
-- [CLIP Paper](https://arxiv.org/abs/2103.00020)
-- [Hugging Face Transformers](https://huggingface.co/docs/transformers/model_doc/clip)
-- [OpenAI CLIP](https://github.com/openai/CLIP)
-
-### **Related Technologies**
-- **LangChain**: Chain orchestration and prompting
-- **Revit API**: C# code generation and execution
-- **Semantic Search**: Method library search and reuse
-
-### **Best Practices**
-- **Image quality**: Use clear, well-lit images
-- **Relevance**: Ensure images match the instruction
-- **Multiple views**: Provide different angles for complex operations
-- **Consistent naming**: Use descriptive image filenames 
+- Support for multiple image analysis
+- Custom CLIP model fine-tuning
+- Integration with other vision models
+- Real-time image capture from Revit
+- Batch processing for multiple instructions 

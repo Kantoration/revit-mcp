@@ -31,6 +31,7 @@ SIMILARITY_THRESHOLD = float(os.getenv("SIMILARITY_THRESHOLD", "0.7"))  # Minimu
 # --- Visual Context Configuration ---
 VISUAL_CONTEXT_ENABLED = os.getenv("VISUAL_CONTEXT_ENABLED", "true").lower() == "true"
 CLIP_SIMILARITY_THRESHOLD = float(os.getenv("CLIP_SIMILARITY_THRESHOLD", "0.3"))  # CLIP similarity threshold
+CLIP_DEVICE_CHOICE = os.getenv("CLIP_DEVICE_CHOICE", "auto").lower()  # CLIP device choice
 
 # --- Centralized Logging and Timing ---
 class Logger:
@@ -517,11 +518,15 @@ async def main(user_instruction=None, image_path=None):
     if VISUAL_CONTEXT_ENABLED and image_path:
         logger.step(2, "Initializing Visual Context Analysis")
         try:
-            analyzer = get_global_analyzer()
+            analyzer = get_global_analyzer(device_choice=CLIP_DEVICE_CHOICE)
             visual_context, visual_similarity = analyzer.analyze_visual_context(image_path, user_instruction)
             
             logger.success(f"Visual analysis completed - Similarity: {visual_similarity:.3f}")
             logger.info(f"Visual Context: {visual_context}")
+            
+            # Get device info for logging
+            device_info = analyzer.get_device_info()
+            logger.info(f"CLIP Device: {device_info['actual_device']} (choice: {device_info['device_choice']})")
             
             # Get visual suggestions
             suggestions = analyzer.get_visual_suggestions(image_path, user_instruction)
